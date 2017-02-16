@@ -1,9 +1,9 @@
-	subroutine mc_hrsr_hut (m2,p,x_fp,dx_fp,y_fp,dy_fp,ms_flag,wcs_flag,
+	subroutine mc_hrsl_hut (m2,p,x_fp,dx_fp,y_fp,dy_fp,ms_flag,wcs_flag,
      >		decay_flag,dflag,resmult,ok_hut,zinit,pathlen)
 
 C----------------------------------------------------------------------
 C
-C Monte-Carlo of HRSR detector hut.
+C Monte-Carlo of HRSL detector hut.
 C
 C	The particle is stepped through the detector (using project), and
 C	multiple scattering is applied for each detector or air gap.
@@ -16,9 +16,9 @@ C----------------------------------------------------------------------
 
 	implicit 	none
 
-	include 'struct_hrsr.inc'
+	include 'struct_hrsl.inc'
 	include '../spectrometers.inc'
-	include '../g_dump_all_events.inc'
+	include 'g_dump_all_events.inc'
 
 C Math constants
 
@@ -32,8 +32,8 @@ C Math constants
 
 C all parameters, later to take from .parm files
 C----------------------------------------------------------------------
-C HRSR_MATERIALS
-C CTP parameter file containing the materials of all the HRSR detectors.
+C HRSL_MATERIALS
+C CTP parameter file containing the materials of all the HRSL detectors.
 C For all materials AFTER the bend only have to do multiple scattering.
 C     radlen = 1 radiation length (in cm)
 C     thick  = thickness in cm
@@ -175,6 +175,7 @@ C Calorimeter position
 
 	real*8 hcal_1pr_zpos,hcal_2ta_zpos,hcal_3ta_zpos,hcal_4ta_zpos
 	real*8 hcal_left,hcal_right,hcal_top,hcal_bottom
+	integer*4 hcal_nx,hcal_ny           !number of cal blocks in each direction
 	parameter (hcal_1pr_zpos = 302.3 + 25.0)
 	parameter (hcal_2ta_zpos = 337.3 + 25.0)
 	parameter (hcal_3ta_zpos = 372.3 + 25.0)
@@ -183,6 +184,8 @@ C Calorimeter position
 	parameter (hcal_right    = -7.5)
 	parameter (hcal_top      = -7.5)
 	parameter (hcal_bottom   =  7.5)
+	parameter (hcal_nx = 16)
+        parameter (hcal_ny = 5)
 
 C The arguments
 
@@ -191,7 +194,7 @@ C The arguments
 	real*8	x_fp,y_fp,dx_fp,dy_fp	!Focal plane values to return
 	real*8	xcal,ycal		!Position of track at calorimeter.
 	real*8	zinit			!Initial z-position (Not at F.P.)
-	real*8	pathlen
+	real*8  pathlen
 	logical ms_flag			!mult. scattering flag.
 	logical wcs_flag		!wire chamber smearing flag
 	logical decay_flag		!check for decay
@@ -296,7 +299,7 @@ C instead of 1/2 way through.
      >      xt.lt.(hdc_1_top-hdc_1x_offset) .or.
      >      yt.gt.(hdc_1_left-hdc_1y_offset) .or.
      >      yt.lt.(hdc_1_right-hdc_1y_offset) ) then
-	  rSTOP_dc1 = rSTOP_dc1 + 1
+	  lSTOP_dc1 = lSTOP_dc1 + 1
 	  stop_where=17.
 	  x_stop=xs
 	  y_stop=ys
@@ -351,15 +354,15 @@ C at last cathode foil of first drift chamber set, drift to next
 	if(ms_flag) call musc(m2,p,radw,dydzs,dxdzs)
 
 !rotate 45 degrees to compare to VDCs.  CHECK SIGN AND SIZE OF ROTATAION!!!
-        xt=xs
-        yt=ys
-        call rotate_haxis(45.0d0,xt,yt)
+	xt=xs
+	yt=ys
+	call rotate_haxis(45.0d0,xt,yt)
 
 	if (xt.gt.(hdc_2_bot-hdc_2x_offset) .or.
      >      xt.lt.(hdc_2_top-hdc_2x_offset) .or.
      >      yt.gt.(hdc_2_left-hdc_2y_offset) .or.
      >      yt.lt.(hdc_2_right-hdc_2y_offset) ) then
-	  rSTOP_dc2 = rSTOP_dc2 + 1
+	  lSTOP_dc2 = lSTOP_dc2 + 1
 	  stop_where=19.
 	  x_stop=xs
 	  y_stop=ys
@@ -396,7 +399,7 @@ C at last cathode foil of second drift chamber set, drift to hodoscopes
 	if(ms_flag) call musc_ext(m2,p,radw,drift,dydzs,dxdzs,ys,xs)
 	if (ys.gt.(hscin_1x_left) .or.
      >      ys.lt.(hscin_1x_right)) then
-	  rSTOP_s1 = rSTOP_s1 + 1
+	  lSTOP_s1 = lSTOP_s1 + 1
 	  stop_where=20.
 	  x_stop=xs
 	  y_stop=ys
@@ -439,7 +442,7 @@ C drift to second hodoscope
 	if(ms_flag) call musc_ext(m2,p,radw,drift,dydzs,dxdzs,ys,xs)
 	if (ys.gt.(hscin_2x_left) .or.
      >      ys.lt.(hscin_2x_right)) then
-	  rSTOP_s2 = rSTOP_s2 + 1
+	  lSTOP_s2 = lSTOP_s2 + 1
 	  stop_where=21.
 	  x_stop=xs
 	  y_stop=ys
@@ -455,7 +458,6 @@ C any calorimeter cuts, so that pathlen is calculated to the back of the spec.
 	call project(xs,ys,drift,decay_flag,dflag,m2,p,pathlen)
 	if(ms_flag) call musc_ext(m2,p,radw,drift,dydzs,dxdzs,ys,xs)
 
-
 C Don't need to drift to calorimeter unless it's required in your trigger.
 C Note that even with the standard PID trigger, the calorimeter is NOT
 C required, since the trigger needs either the cerenkov OR the calorimeter.
@@ -463,7 +465,7 @@ C There is a seperate fiducial cut needed if you require the calorimeter
 C in you analysis.  That cut is applied AFTER fitting the track (see below).
 *	if (ys.gt.hcal_left .or. ys.lt.hcal_right .or.
 *     >	   xs.gt.hcal_bottom .or. xs.lt.hcal_top) then
-*	  rSTOP_cal = rSTOP_cal + 1
+*	  lSTOP_cal = lSTOP_cal + 1
 *	  stop_where=22.
 *	  x_stop=xs
 *	  y_stop=ys
@@ -478,14 +480,16 @@ C The standard fiducial cut is 5 cm from the edges of the block.
 
 	xcal = x_fp + dx_fp * hcal_4ta_zpos
 	ycal = y_fp + dy_fp * hcal_4ta_zpos
-*	if (ycal.gt.(hcal_left-5.0) .or. ycal.lt.(hcal_right+5.0) .or.
-*     >	   xcal.gt.(hcal_bottom-5.0) .or. xcal.lt.(hcal_top+5.0)) then
-*	  rSTOP_cal = rSTOP_cal + 1
-*	  stop_where=23.
-*	  x_stop=xs
-*	  y_stop=ys
-*	  goto 500
-*	endif
+	if (ycal.gt.(hcal_ny*hcal_left) .or. 
+     >      ycal.lt.(hcal_ny*hcal_right) .or.
+     >	    xcal.gt.(hcal_nx*hcal_bottom) .or. 
+     >      xcal.lt.(hcal_nx*hcal_top)) then
+	  lSTOP_cal = lSTOP_cal + 1
+	  stop_where=23.
+	  x_stop=xs
+	  y_stop=ys
+	  goto 500
+	endif
 
 	ok_hut = .true.
 
