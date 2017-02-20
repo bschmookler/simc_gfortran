@@ -88,8 +88,8 @@ C Collimator (rectangle) dimensions and offsets.
 
 ! z-position of important apertures.
 	real*8 z_entr,z_exit
-	parameter (z_entr = 110.0d0 + z_off)	!nominally 1.100 m
-	parameter (z_exit = z_entr + 8.0d0)	!8.0 cm thick
+	parameter (z_entr = 110.0e0 + z_off)	!nominally 1.100 m
+	parameter (z_exit = z_entr + 8.0e0)	!8.0 cm thick
 
 
 C Local declarations.
@@ -330,7 +330,7 @@ C Read in transport coefficients.
 
 ! Check aperture at 2/3 of Q1.
 
-	call transp(spectr,2,decay_flag,dflag,m2,p,62.75333333d0,pathlen)
+	call transp(spectr,2,decay_flag,dflag,m2,p,62.75333333e0,pathlen)
 	if ((xs*xs + ys*ys).gt.r_Q1*r_Q1) then
 	  rSTOP_Q1_mid = rSTOP_Q1_mid + 1
 	  stop_where=6.
@@ -341,7 +341,7 @@ C Read in transport coefficients.
 
 ! Go to Q1 OUT mag boundary.
 
-	call transp(spectr,3,decay_flag,dflag,m2,p,31.37666667d0,pathlen)
+	call transp(spectr,3,decay_flag,dflag,m2,p,31.37666667e0,pathlen)
 	if ((xs*xs + ys*ys).gt.r_Q1*r_Q1) then
 	  rSTOP_Q1_out = rSTOP_Q1_out + 1
 	  stop_where=7.
@@ -389,7 +389,7 @@ C Read in transport coefficients.
 
 ! Check aperture at 2/3 of Q2.
 
-	call transp(spectr,5,decay_flag,dflag,m2,p,121.77333333d0,pathlen)
+	call transp(spectr,5,decay_flag,dflag,m2,p,121.77333333e0,pathlen)
 	if ((xs*xs + ys*ys).gt.r_Q2*r_Q2) then
 	  rSTOP_Q2_mid = rSTOP_Q2_mid + 1
 	  stop_where=9.
@@ -400,7 +400,7 @@ C Read in transport coefficients.
 
 ! Go to Q2 OUT mag boundary.
 
-	call transp(spectr,6,decay_flag,dflag,m2,p,60.88666667d0,pathlen)
+	call transp(spectr,6,decay_flag,dflag,m2,p,60.88666667e0,pathlen)
 	if ((xs*xs + ys*ys).gt.r_Q2*r_Q2) then
 	  rSTOP_Q2_out = rSTOP_Q2_out + 1
 	  stop_where=10.
@@ -470,7 +470,7 @@ C Read in transport coefficients.
 ! Go to D1 OUT magnetic boundary.
 ! Find intersection with rotated aperture plane.
 
-	call transp(spectr,8,decay_flag,dflag,m2,p,659.73445725d0,pathlen)
+	call transp(spectr,8,decay_flag,dflag,m2,p,659.73445725e0,pathlen)
 	xt=xs
 	yt=ys
 	call rotate_haxis(30.0,xt,yt)
@@ -537,7 +537,7 @@ C Read in transport coefficients.
 
 ! Check aperture at 2/3 of Q3.
 
-	call transp(spectr,10,decay_flag,dflag,m2,p,121.7866667d0,pathlen)
+	call transp(spectr,10,decay_flag,dflag,m2,p,121.7866667e0,pathlen)
 	if ((xs*xs + ys*ys).gt.r_Q3*r_Q3) then
 	  rSTOP_Q3_mid = rSTOP_Q3_mid + 1
 	  stop_where=16.
@@ -548,7 +548,7 @@ C Read in transport coefficients.
 
 ! Go to Q3 OUT mag boundary.
 
-	call transp(spectr,11,decay_flag,dflag,m2,p,60.89333333d0,pathlen)
+	call transp(spectr,11,decay_flag,dflag,m2,p,60.89333333e0,pathlen)
 	if ((xs*xs + ys*ys).gt.r_Q3*r_Q3) then
 	  rSTOP_Q3_out = rSTOP_Q3_out + 1
 	  stop_where=17.
